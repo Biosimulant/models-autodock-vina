@@ -1,0 +1,11 @@
+description: 'Single-model lab wrapper for AutoDock Vina: VinaDockingPredictor. Wraps the official AutoDock Vina 1.2.7 CLI for single receptor and ligand PDBQT docking runs.'
+models:
+- alias: vina_autodock_vina_docking_predictor
+  path: model
+runtime:
+  communication_step: 0.01
+  duration: 0.01
+  initial_inputs: {}
+schema_version: '2.0'
+title: 'AutoDock Vina: VinaDockingPredictor Lab'
+wiring: []

@@ -1,5 +1,8 @@
 # models-autodock-vina
 
+> Storage-only repo: each former root model now lives in `labs/<slug>/model/` and is wrapped by
+> `labs/<slug>/lab.yaml`. This repo has no repo-level import catalog and no composed labs at the root.
+
 Curated collection of **AutoDock Vina-family docking models** for the **biosim**
 platform.
 
@@ -9,9 +12,9 @@ module for prepared receptor and ligand `PDBQT` inputs.
 
 ## What's Inside
 
-### Models
+### Wrapper Sublabs
 
-| Model | Description |
+| Sublab | Description |
 |---|---|
 | `vina-autodock-vina-docking-predictor` | Native AutoDock Vina `1.2.7` wrapper for single receptor/ligand docking workflows. |
 
@@ -20,7 +23,7 @@ module for prepared receptor and ligand `PDBQT` inputs.
 This repository is for:
 - native AutoDock Vina-family wrappers that implement the `biosim.BioModule` contract
 - single-complex docking runs that emit ranked pose summaries plus file-backed structural artifacts
-- portable examples that can be exported to `.bsispace` and validated against remote CPU execution
+- portable examples that can be exported to `.bsilab` and validated against remote CPU execution
 
 This repository is not for:
 - receptor or ligand preparation from `PDB`, `SDF`, or `SMILES`
@@ -41,4 +44,4 @@ The release-grade validation target is Linux CPU execution on Modal.
 ## Examples
 
 See [examples/README.md](examples/README.md) for the example inventory, including
-the remote `.bsispace` builder used for desktop end-to-end validation.
+the remote `.bsilab` builder used for desktop end-to-end validation.

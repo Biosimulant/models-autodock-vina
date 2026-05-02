@@ -4,7 +4,7 @@
 
 - `vina-minimal`: direct local runner config for the checked-in AutoDock Vina
   `1iep` receptor/ligand `PDBQT` assets
-- `vina-wiring`: a portable single-model `space.yaml` wiring example
+- `vina-wiring`: a portable single-model `lab.yaml` wiring example
 - `build_vina_bsispace.py`: exports a portable desktop lab and optionally stages
   it through Hub for a real remote CPU validation run
 

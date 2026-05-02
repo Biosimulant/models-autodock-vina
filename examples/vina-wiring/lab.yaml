@@ -3,7 +3,7 @@ title: "AutoDock Vina Single Complex Example"
 description: "Single-model space wiring example for AutoDock Vina docking."
 models:
   - alias: "vina"
-    path: "models/vina-autodock-vina-docking-predictor"
+    path: "../../labs/vina-autodock-vina-docking-predictor/model"
     parameters:
       runtime_mode: "managed"
       default_receptor_pdbqt_path: "data/1iep/1iep_receptor.pdbqt"
@@ -19,5 +19,5 @@ models:
 wiring: []
 runtime:
   duration: 0.01
-  tick_dt: 0.01
+  communication_step: 0.01
   initial_inputs: {}

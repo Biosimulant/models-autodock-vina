@@ -1,6 +1,6 @@
 example_name: "vina-minimal"
 model:
-  path: "../../models/vina-autodock-vina-docking-predictor"
+  path: "../../labs/vina-autodock-vina-docking-predictor/model"
   class: "src.vina_docking_predictor:VinaDockingPredictor"
   parameters:
     runtime_mode: "managed"
