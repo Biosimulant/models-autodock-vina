@@ -2,22 +2,28 @@
 
 ## Included Examples
 
-- `vina-minimal`: direct local runner config for the checked-in AutoDock Vina
-  `1iep` receptor/ligand `PDBQT` assets
-- `vina-wiring`: a portable single-model `lab.yaml` wiring example
-- `build_vina_bsispace.py`: exports a portable desktop lab and optionally stages
-  it through Hub for a real remote CPU validation run
+- [`vina-minimal`](vina-minimal/README.md): direct local runner config for the checked-in AutoDock Vina `1iep` receptor / ligand `PDBQT` assets. Run via the per-repo CLI.
+- [`vina-wiring`](vina-wiring/README.md): portable single-model `lab.yaml` wiring example. Import with the `biosimulant` CLI and run from Biosimulant Desktop.
 
 ## Quick Start
 
-Run the local example directly:
+### CLI (per-repo runner)
 
 ```bash
 python3 examples/run_example.py vina-minimal
 ```
 
-Build the portable desktop package:
+### CLI (biosimulant)
+
+Import the wiring lab into the local data directory, then list it:
 
 ```bash
-python3 examples/build_vina_bsispace.py
+biosimulant labs import examples/vina-wiring
+biosimulant labs list --json
 ```
+
+### Desktop
+
+After importing with `biosimulant labs import`, open Biosimulant Desktop. The imported lab shows up under your local labs; open it and click **Run**.
+
+See the per-example READMEs above for input details, expected outputs, and runtime requirements.

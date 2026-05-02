@@ -4,46 +4,42 @@ Portable single-model `lab.yaml` wiring example for AutoDock Vina.
 
 ## What it runs
 
-The same `1iep` docking job as [vina-minimal](../vina-minimal/), expressed as a schema 2.0 [lab.yaml](lab.yaml) so it can be opened in Biosimulant Desktop or run through the generic `biosim` CLI. The lab declares one model alias (`vina`) pointing at `labs/vina-autodock-vina-docking-predictor/model`, with the receptor / ligand paths and run options provided as `default_*` parameters. `wiring: []` (no inter-module wiring; this is a single-model lab).
+The same `1iep` docking job as [vina-minimal](../vina-minimal/), expressed as a schema 2.0 [lab.yaml](lab.yaml) so it can be imported into Biosimulant Desktop and run through the canonical `biosimulant` CLI. The lab declares one model alias (`vina`) pointing at `labs/vina-autodock-vina-docking-predictor/model`, with the receptor / ligand paths and run options provided as `default_*` parameters. `wiring: []` (no inter-module wiring; this is a single-model lab).
 
 ## Requirements
 
-- Python 3.10+ with `pyyaml` and the `biosim` package importable on the path.
+- The `biosimulant` CLI on your `PATH`. Install it from the desktop app (Settings > CLI Tools > Install CLI), or from the standalone installer at `https://biosimulant.com/install.sh`. Verify with `biosimulant doctor`.
 - Internet access on the first run: the wrapper downloads the pinned official AutoDock Vina `1.2.7` binaries (about 1 to 2 minutes). Subsequent runs are offline.
 - CPU only. No GPU required.
 
 ## Run via CLI
 
-The generic `biosim` runner accepts both `config.yaml` and schema 2.0 `lab.yaml`:
+Import the lab into the local Biosimulant data directory, then start a run:
 
 ```bash
 cd /path/to/models-autodock-vina
-python -m biosim examples/vina-wiring/lab.yaml --duration 0.01
+biosimulant labs import examples/vina-wiring
+biosimulant labs list --json
 ```
 
-Add `--simui --open` to launch the SimUI web dashboard in a browser instead of running headless:
+`labs list` returns the imported lab's id. Use it from the desktop GUI, or feed it into raw mode:
 
 ```bash
-python -m biosim examples/vina-wiring/lab.yaml --simui --open
+biosimulant raw run_lab --input '{"lab_id":"<id-from-labs-list>"}' --json
 ```
 
-Other flags from `python -m biosim`: `--communication-step`, `--port`, `--host`.
+The CLI is headless by default. Add `--report-file run-report.html --open` (global flags supported on `biosimulant run lab` and `runs open`) to also write a static HTML report and launch your browser when the run finishes.
 
 ## Run via Desktop
 
-1. Build a `.bsilab` package from this directory using the `biosim` packager:
+1. Import the lab once:
 
    ```bash
-   cd /path/to/models-autodock-vina
-   python -m biosim pack build examples/vina-wiring --out vina-wiring.bsilab
+   biosimulant labs import examples/vina-wiring
    ```
 
-2. Open `vina-wiring.bsilab` in Biosimulant Desktop. The `.bsilab` extension is registered by the desktop app's file association, so you can:
-   - double-click the file in Finder / Explorer,
-   - drag it onto the running app window, or
-   - use the in-app "Open Lab" entry.
-
-3. Run from the lab view. Remote runs honor the manifest-declared init overrides that force `runtime_mode: managed`, and the wrapper streams live `stdout` / `stderr` plus `BSIM_PROGRESS:` milestones from the sandbox into the desktop run log.
+2. Launch Biosimulant Desktop (or, if the app is already running, refresh the labs list). The imported lab appears under your local labs.
+3. Open the lab and hit **Run**. The wrapper streams live `stdout` / `stderr` plus `BSIM_PROGRESS:` milestones from the sandbox into the desktop run log, and remote runs honor the manifest-declared init overrides that force `runtime_mode: managed`.
 
 ## Expected outputs
 

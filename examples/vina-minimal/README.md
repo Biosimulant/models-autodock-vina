@@ -30,7 +30,7 @@ Useful flags accepted by `run_example.py`:
 
 ## Run via Desktop
 
-This example is a `config.yaml` for the direct runner; it is not a desktop lab on its own. To run the same docking job in Biosimulant Desktop, open the sibling [vina-wiring](../vina-wiring/) example, which expresses the same inputs as a portable schema 2.0 `lab.yaml`. See [vina-wiring/README.md](../vina-wiring/README.md) for the build-and-open flow.
+This example is a `config.yaml` for the direct runner; it is not a desktop lab on its own. To run the same docking job in Biosimulant Desktop, use the sibling [vina-wiring](../vina-wiring/) example, which expresses the same inputs as a portable schema 2.0 `lab.yaml`. Import it once with `biosimulant labs import examples/vina-wiring`, then run it from the desktop app. See [vina-wiring/README.md](../vina-wiring/README.md) for the full flow.
 
 ## Expected outputs
 
