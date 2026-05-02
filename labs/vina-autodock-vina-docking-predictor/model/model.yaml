@@ -17,3 +17,56 @@ runtime:
       runtime_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina"
       cache_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina/downloads"
       work_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-work/vina"
+parameters:
+  - name: default_receptor_pdbqt_path
+    value: null
+    description: "Fallback receptor PDBQT path used when the receptor_pdbqt_path input signal is not wired. Resolved relative to the model directory."
+  - name: default_ligand_pdbqt_path
+    value: null
+    description: "Fallback ligand PDBQT path used when the ligand_pdbqt_path input signal is not wired. Resolved relative to the model directory."
+  - name: default_run_options
+    value: {}
+    description: "Default Vina CLI options merged onto any run_options input signal. Keys: box_center, box_size, exhaustiveness, n_poses, energy_range, cpu, scoring."
+  - name: runtime_mode
+    value: "managed"
+    description: "managed | system. Managed downloads the pinned official Vina 1.2.7 binaries on first run."
+  - name: vina_version
+    value: "1.2.7"
+    description: "Pinned upstream AutoDock Vina release fetched in managed runtime mode."
+  - name: command_timeout_s
+    value: 3600.0
+    min: 1.0
+    units: "s"
+    description: "Timeout for any single Vina CLI invocation."
+  - name: download_timeout_s
+    value: 1200.0
+    min: 1.0
+    units: "s"
+    description: "Timeout for the managed-runtime binary download."
+  - name: progress_heartbeat_s
+    value: 15.0
+    min: 0.0
+    units: "s"
+    description: "Interval between BSIM_PROGRESS heartbeat events while Vina is running."
+  - name: integration_step
+    value: 0.01
+    min: 0.001
+    units: "s"
+    description: "BioWorld integration step. Vina is event-driven so this only paces the wrapper."
+io:
+  inputs:
+    - name: receptor_pdbqt_path
+      description: "Receptor PDBQT file path. Overrides default_receptor_pdbqt_path when present."
+    - name: ligand_pdbqt_path
+      description: "Ligand PDBQT file path. Overrides default_ligand_pdbqt_path when present."
+    - name: run_options
+      description: "Vina options dict merged onto default_run_options. Keys: box_center, box_size, exhaustiveness, n_poses, energy_range, cpu, scoring."
+  outputs:
+    - name: pose_summary
+      description: "Ranked Vina poses with affinities and RMSDs."
+    - name: docking_summary
+      description: "Aggregate stats across the ranked pose set."
+    - name: structure_artifacts
+      description: "File-backed structural artifacts (top-rank merged PDB and per-pose splits)."
+    - name: run_metadata
+      description: "Runtime metadata including stdout/stderr tails. payload.status='ok' on success, 'error' if validation or the Vina CLI failed."
