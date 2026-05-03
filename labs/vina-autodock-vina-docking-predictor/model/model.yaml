@@ -4,7 +4,7 @@ description: "Wraps the official AutoDock Vina 1.2.7 CLI for single receptor and
 package: "Biosimulant/models-autodock-vina:labs/vina-autodock-vina-docking-predictor/model/model.yaml"
 version: "0.1.0"
 standard: other
-tags: [vina, autodock-vina, docking, structural-biology, protein-ligand, cpu]
+tags: [vina, autodock-vina, docking, structural-biology, protein-ligand, gpu]
 authors: ["Biosimulant Team"]
 biosim:
   communication_step: 0.01
@@ -12,6 +12,9 @@ biosim:
 runtime:
   python_version: "3.11"
   remote:
+    requirements:
+      accelerator: gpu
+      gpu_count: 1
     init_kwargs:
       runtime_mode: managed
       runtime_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina"
