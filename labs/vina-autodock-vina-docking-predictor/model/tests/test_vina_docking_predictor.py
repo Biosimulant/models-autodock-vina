@@ -428,7 +428,7 @@ def test_repeat_advance_does_not_rerun_until_reset(biosim, tmp_path, monkeypatch
 
 
 def test_example_files_parse_and_reference_real_interface(biosim):
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = Path(__file__).resolve().parents[4]
     minimal = yaml.safe_load((repo_root / "examples" / "vina-minimal" / "config.yaml").read_text(encoding="utf-8"))
     wiring = yaml.safe_load((repo_root / "examples" / "vina-wiring" / "lab.yaml").read_text(encoding="utf-8"))
 
@@ -436,7 +436,7 @@ def test_example_files_parse_and_reference_real_interface(biosim):
     assert minimal["model"]["inputs"]["receptor_pdbqt_path"] == "data/1iep/1iep_receptor.pdbqt"
     assert minimal["model"]["inputs"]["ligand_pdbqt_path"] == "data/1iep/1iep_ligand.pdbqt"
     assert minimal["model"]["inputs"]["run_options"]["exhaustiveness"] == 32
-    assert wiring["models"][0]["path"] == "models/vina-autodock-vina-docking-predictor"
+    assert wiring["models"][0]["path"] == "../../labs/vina-autodock-vina-docking-predictor/model"
     assert wiring["models"][0]["parameters"]["default_receptor_pdbqt_path"] == "data/1iep/1iep_receptor.pdbqt"
     assert wiring["models"][0]["parameters"]["default_run_options"]["scoring"] == "vina"
 
