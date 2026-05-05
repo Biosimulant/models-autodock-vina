@@ -1,40 +1,63 @@
-schema_version: "2.0"
-title: "AutoDock Vina: VinaDockingPredictor Lab"
-description: "Single-model lab wrapper for AutoDock Vina 1.2.7. Ships with the bundled 1iep receptor/ligand PDBQT pair so the lab runs out of the box."
+schema_version: '2.0'
+title: 'AutoDock Vina: VinaDockingPredictor Lab'
+description: Multi-model lab with an embedded visualisation sibling for AutoDock Vina 1.2.7. Ships with the bundled
+  1iep receptor/ligand PDBQT pair so the lab runs out of the box.
 models:
-  - alias: vina_autodock_vina_docking_predictor
-    path: model
-    parameters:
-      runtime_mode: "managed"
-      default_receptor_pdbqt_path: "data/1iep/1iep_receptor.pdbqt"
-      default_ligand_pdbqt_path: "data/1iep/1iep_ligand.pdbqt"
-      default_run_options:
-        box_center: [15.19, 53.903, 16.917]
-        box_size: [20.0, 20.0, 20.0]
-        exhaustiveness: 32
-        n_poses: 9
-        energy_range: 3.0
-        cpu: 0
-        scoring: "vina"
+- alias: vina_autodock_vina_docking_predictor
+  path: models/core
+  parameters:
+    runtime_mode: managed
+    default_receptor_pdbqt_path: data/1iep/1iep_receptor.pdbqt
+    default_ligand_pdbqt_path: data/1iep/1iep_ligand.pdbqt
+    default_run_options:
+      box_center:
+      - 15.19
+      - 53.903
+      - 16.917
+      box_size:
+      - 20.0
+      - 20.0
+      - 20.0
+      exhaustiveness: 32
+      n_poses: 9
+      energy_range: 3.0
+      cpu: 0
+      scoring: vina
+- alias: visualisation
+  path: models/visualisation
+  parameters:
+    integration_step: 0.01
 runtime:
   duration: 0.01
   communication_step: 0.01
   initial_inputs: {}
 io:
   inputs:
-    - name: receptor_pdbqt_path
-      maps_to: vina_autodock_vina_docking_predictor.receptor_pdbqt_path
-    - name: ligand_pdbqt_path
-      maps_to: vina_autodock_vina_docking_predictor.ligand_pdbqt_path
-    - name: run_options
-      maps_to: vina_autodock_vina_docking_predictor.run_options
+  - name: receptor_pdbqt_path
+    maps_to: vina_autodock_vina_docking_predictor.receptor_pdbqt_path
+  - name: ligand_pdbqt_path
+    maps_to: vina_autodock_vina_docking_predictor.ligand_pdbqt_path
+  - name: run_options
+    maps_to: vina_autodock_vina_docking_predictor.run_options
   outputs:
-    - name: pose_summary
-      maps_to: vina_autodock_vina_docking_predictor.pose_summary
-    - name: docking_summary
-      maps_to: vina_autodock_vina_docking_predictor.docking_summary
-    - name: structure_artifacts
-      maps_to: vina_autodock_vina_docking_predictor.structure_artifacts
-    - name: run_metadata
-      maps_to: vina_autodock_vina_docking_predictor.run_metadata
-wiring: []
+  - name: pose_summary
+    maps_to: vina_autodock_vina_docking_predictor.pose_summary
+  - name: docking_summary
+    maps_to: vina_autodock_vina_docking_predictor.docking_summary
+  - name: structure_artifacts
+    maps_to: vina_autodock_vina_docking_predictor.structure_artifacts
+  - name: run_metadata
+    maps_to: vina_autodock_vina_docking_predictor.run_metadata
+wiring:
+- from: vina_autodock_vina_docking_predictor.pose_summary
+  to:
+  - visualisation.vina_autodock_vina_docking_predictor_pose_summary
+- from: vina_autodock_vina_docking_predictor.docking_summary
+  to:
+  - visualisation.vina_autodock_vina_docking_predictor_docking_summary
+- from: vina_autodock_vina_docking_predictor.structure_artifacts
+  to:
+  - visualisation.vina_autodock_vina_docking_predictor_structure_artifacts
+- from: vina_autodock_vina_docking_predictor.run_metadata
+  to:
+  - visualisation.vina_autodock_vina_docking_predictor_run_metadata

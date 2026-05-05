@@ -59,17 +59,6 @@ The model accepts three input signals. Each one falls back to the matching `defa
 - `structure_artifacts` (record): file-backed artifacts including the merged `top_rank_complex.pdb` consumed by the structure3d renderer.
 - `run_metadata` (record): runtime metadata, Vina version, runtime/cache directories, truncated stdout/stderr, and `status: ok` or `status: error`.
 
-## Running with the Bundled Defaults
-
-The same complex is also wired up as a direct local example in [`examples/vina-minimal/config.yaml`](../../examples/vina-minimal/config.yaml). To run it without the desktop app:
-
-```bash
-cd /path/to/models-autodock-vina
-python3 examples/run_example.py vina-minimal
-```
-
-That produces the same four BioSignal outputs as a desktop run. The first invocation downloads the AutoDock Vina 1.2.7 release into `.runtime/vina/`; later runs are offline.
-
 ## Running in Biosimulant Desktop
 
 Import the lab once with the Biosim CLI, then open it from the desktop app. The bundled `1iep` defaults mean the first run requires no parameter editing.

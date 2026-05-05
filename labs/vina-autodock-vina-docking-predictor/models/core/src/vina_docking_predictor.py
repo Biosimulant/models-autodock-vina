@@ -441,76 +441,7 @@ class VinaDockingPredictor(BioModule):
         return dict(self._outputs)
 
     def visualize(self) -> Optional[list[dict[str, Any]]]:
-        run_metadata = self._cached_payloads.get("run_metadata")
-        artifacts = self._cached_payloads.get("structure_artifacts")
-        docking_summary = self._cached_payloads.get("docking_summary")
-        poses = self._cached_payloads.get("pose_summary")
-
-        if not isinstance(run_metadata, Mapping) or run_metadata.get("status") != "completed":
-            return None
-        if not isinstance(artifacts, Mapping) or not isinstance(docking_summary, Mapping):
-            return None
-        if not isinstance(poses, list):
-            return None
-
-        top_complex_raw = artifacts.get("top_complex_file")
-        if not isinstance(top_complex_raw, str) or not top_complex_raw:
-            return None
-
-        top_complex_path = Path(top_complex_raw).expanduser().resolve()
-        rows: list[list[str]] = []
-        for row in poses:
-            if not isinstance(row, Mapping):
-                continue
-            rows.append(
-                [
-                    str(row.get("rank", "")),
-                    "" if row.get("affinity_kcal_mol") is None else str(row.get("affinity_kcal_mol")),
-                    "" if row.get("rmsd_lb") is None else str(row.get("rmsd_lb")),
-                    "" if row.get("rmsd_ub") is None else str(row.get("rmsd_ub")),
-                    Path(str(row.get("pose_file", ""))).name,
-                ]
-            )
-
-        return [
-            {
-                "render": "structure3d",
-                "description": "Top-ranked AutoDock Vina complex for the latest docking run.",
-                "data": {
-                    "title": "Top-Ranked Docked Complex",
-                    "source": {
-                        "kind": "artifact",
-                        "artifact_id": self._structure_artifact_id(top_complex_path),
-                        "path": str(top_complex_path),
-                    },
-                    "format": "pdb",
-                    "annotations": [
-                        {
-                            "label": "Top Pose Affinity (kcal/mol)",
-                            "value": docking_summary.get("top_pose_affinity_kcal_mol"),
-                        },
-                        {
-                            "label": "Scoring",
-                            "value": docking_summary.get("scoring"),
-                        },
-                        {
-                            "label": "Pose Count",
-                            "value": docking_summary.get("pose_count"),
-                        },
-                    ],
-                    "initial_view": {"reset_camera": True},
-                },
-            },
-            {
-                "render": "table",
-                "description": "Ranked pose summary from the latest AutoDock Vina run.",
-                "data": {
-                    "title": "AutoDock Vina Pose Summary",
-                    "columns": ["Rank", "Affinity", "RMSD l.b.", "RMSD u.b.", "Pose File"],
-                    "rows": rows,
-                },
-            },
-        ]
+        return None
 
     def _resolved_options(self) -> dict[str, Any]:
         resolved: dict[str, Any] = {

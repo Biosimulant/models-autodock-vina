@@ -4,31 +4,13 @@ Portable single-model `lab.yaml` wiring example for AutoDock Vina.
 
 ## What it runs
 
-The same `1iep` docking job as [vina-minimal](../vina-minimal/), expressed as a schema 2.0 [lab.yaml](lab.yaml) so it can be imported into Biosimulant Desktop and run through the canonical `biosimulant` CLI. The lab declares one model alias (`vina`) pointing at `labs/vina-autodock-vina-docking-predictor/model`, with the receptor / ligand paths and run options provided as `default_*` parameters. `wiring: []` (no inter-module wiring; this is a single-model lab).
+The same `1iep` docking job as [vina-minimal](../vina-minimal/), expressed as a schema 2.0 [lab.yaml](lab.yaml) so it can be imported into Biosimulant Desktop and run through the canonical `biosimulant` CLI. The lab declares one model alias (`vina`) pointing at `labs/vina-autodock-vina-docking-predictor/models/core`, with the receptor / ligand paths and run options provided as `default_*` parameters. `wiring: []` (no inter-module wiring; this lab exposes a core model plus an internal visualisation model).
 
 ## Requirements
 
 - The `biosimulant` CLI on your `PATH`. Install it from the desktop app (Settings > CLI Tools > Install CLI), or from the standalone installer at `https://biosimulant.com/install.sh`. Verify with `biosimulant doctor`.
 - Internet access on the first run: the wrapper downloads the pinned official AutoDock Vina `1.2.7` binaries (about 1 to 2 minutes). Subsequent runs are offline.
 - CPU only. No GPU required.
-
-## Run via CLI
-
-Import the lab into the local Biosimulant data directory, then start a run:
-
-```bash
-cd /path/to/models-autodock-vina
-biosimulant labs import examples/vina-wiring
-biosimulant labs list --json
-```
-
-`labs list` returns the imported lab's id. Use it from the desktop GUI, or feed it into raw mode:
-
-```bash
-biosimulant raw run_lab --input '{"lab_id":"<id-from-labs-list>"}' --json
-```
-
-The CLI is headless by default. Add `--report-file run-report.html --open` (global flags supported on `biosimulant run lab` and `runs open`) to also write a static HTML report and launch your browser when the run finishes.
 
 ## Run via Desktop
 

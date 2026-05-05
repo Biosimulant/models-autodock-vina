@@ -7,12 +7,6 @@
 
 ## Quick Start
 
-### CLI (per-repo runner)
-
-```bash
-python3 examples/run_example.py vina-minimal
-```
-
 ### CLI (biosimulant)
 
 Import the wiring lab into the local data directory, then list it:

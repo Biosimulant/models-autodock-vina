@@ -1,7 +1,7 @@
 schema_version: "2.0"
 title: "AutoDock Vina: VinaDockingPredictor"
 description: "Wraps the official AutoDock Vina 1.2.7 CLI for single receptor and ligand PDBQT docking runs."
-package: "Biosimulant/models-autodock-vina:labs/vina-autodock-vina-docking-predictor/model/model.yaml"
+package: "Biosimulant/models-autodock-vina:labs/vina-autodock-vina-docking-predictor/models/core/model.yaml"
 version: "0.1.0"
 standard: other
 tags: [vina, autodock-vina, docking, structural-biology, protein-ligand, gpu]

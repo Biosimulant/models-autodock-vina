@@ -239,12 +239,7 @@ def test_managed_runtime_bootstraps_and_parses_outputs(biosim, tmp_path, monkeyp
     assert Path(artifacts["stderr_tail_file"]).is_file()
     assert len(downloads) == 2
 
-    visuals = module.visualize()
-    assert visuals is not None
-    assert visuals[0]["render"] == "structure3d"
-    assert visuals[0]["data"]["format"] == "pdb"
-    assert visuals[1]["render"] == "table"
-    assert visuals[1]["data"]["columns"] == ["Rank", "Affinity", "RMSD l.b.", "RMSD u.b.", "Pose File"]
+    assert module.visualize() is None
 
 
 def test_managed_runtime_reuses_cached_binary(biosim, tmp_path, monkeypatch):
@@ -428,15 +423,15 @@ def test_repeat_advance_does_not_rerun_until_reset(biosim, tmp_path, monkeypatch
 
 
 def test_example_files_parse_and_reference_real_interface(biosim):
-    repo_root = Path(__file__).resolve().parents[4]
+    repo_root = Path(__file__).resolve().parents[5]
     minimal = yaml.safe_load((repo_root / "examples" / "vina-minimal" / "config.yaml").read_text(encoding="utf-8"))
     wiring = yaml.safe_load((repo_root / "examples" / "vina-wiring" / "lab.yaml").read_text(encoding="utf-8"))
 
-    assert minimal["model"]["path"] == "../../labs/vina-autodock-vina-docking-predictor/model"
+    assert minimal["model"]["path"] == "../../labs/vina-autodock-vina-docking-predictor/models/core"
     assert minimal["model"]["inputs"]["receptor_pdbqt_path"] == "data/1iep/1iep_receptor.pdbqt"
     assert minimal["model"]["inputs"]["ligand_pdbqt_path"] == "data/1iep/1iep_ligand.pdbqt"
     assert minimal["model"]["inputs"]["run_options"]["exhaustiveness"] == 32
-    assert wiring["models"][0]["path"] == "../../labs/vina-autodock-vina-docking-predictor/model"
+    assert wiring["models"][0]["path"] == "../../labs/vina-autodock-vina-docking-predictor/models/core"
     assert wiring["models"][0]["parameters"]["default_receptor_pdbqt_path"] == "data/1iep/1iep_receptor.pdbqt"
     assert wiring["models"][0]["parameters"]["default_run_options"]["scoring"] == "vina"
 
