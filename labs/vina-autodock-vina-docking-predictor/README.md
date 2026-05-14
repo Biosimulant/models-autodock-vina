@@ -73,4 +73,5 @@ To dock a different complex, override the inputs in the lab's run sidebar (or wi
 
 - Managed runtime mode is required for remote CPU execution on Modal. System mode (using a pre-installed Vina) is supported for local debugging.
 - The lab's `runtime.duration` is intentionally short. Vina is event-driven; the wrapper runs the docking job inside a single advance window.
+- The lab sets `runtime.settle_steps: 1` so the downstream visualization module can consume the final structure artifacts without extending simulated time.
 - `model/data/1iep/` is shipped as part of the model package so the defaults resolve in remote runs too.

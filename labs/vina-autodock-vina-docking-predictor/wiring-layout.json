@@ -4,8 +4,15 @@
     {
       "id": "vina_autodock_vina_docking_predictor",
       "position": {
-        "x": 360,
+        "x": 0,
         "y": 0
+      }
+    },
+    {
+      "id": "visualisation",
+      "position": {
+        "x": 360,
+        "y": 396
       }
     }
   ]

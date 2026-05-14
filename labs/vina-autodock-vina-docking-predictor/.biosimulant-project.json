@@ -1,9 +1,11 @@
 {
   "schema_version": "1",
-  "local_id": "c5829ecd-becb-4c3c-b196-4b28382b4351",
+  "local_id": "ac7081d1-a1c0-4689-95ee-8b79142be5e7",
   "kind": "lab",
   "source": "local",
   "hub_id": "13445afd-7ed7-4981-977b-92156423dd19",
-  "created_at": "2026-05-02 16:01:52",
-  "package_name": "local/AutoDock_Vina__VinaDockingPredictor_Lab"
+  "created_at": "2026-05-12 09:09:32",
+  "last_synced_at": "2026-05-13T20:29:16.535062+00:00",
+  "hub_manifest_hash": "de657331f17e94b3dd7d5ee6e7acd9f8e4b5d922e191622f0f53bde462b3c84a",
+  "package_name": "autodock-vina-vinadockingpredictor-lab"
 }
