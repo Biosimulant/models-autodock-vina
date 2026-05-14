@@ -5,7 +5,7 @@
   "source": "local",
   "hub_id": "13445afd-7ed7-4981-977b-92156423dd19",
   "created_at": "2026-05-12 09:09:32",
-  "last_synced_at": "2026-05-13T20:29:16.535062+00:00",
-  "hub_manifest_hash": "de657331f17e94b3dd7d5ee6e7acd9f8e4b5d922e191622f0f53bde462b3c84a",
+  "last_synced_at": "2026-05-14T03:19:33.099912+00:00",
+  "hub_manifest_hash": "84075eee893ef3fd12cf94bd26e4e521200a613ca50e47ffa197f61260d14987",
   "package_name": "autodock-vina-vinadockingpredictor-lab"
 }
