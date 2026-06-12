@@ -1,0 +1,10 @@
+schema_version: "1"
+namespace: demi
+default_visibility: public
+packages:
+  - id: vina-autodock-vina-docking-predictor-lab
+    package: vina-autodock-vina-docking-predictor
+    version: 1.0.0
+    type: lab
+    path: labs/vina-autodock-vina-docking-predictor
+    visibility: public
