@@ -42,7 +42,7 @@ jobs:
         run: |
           pip install pyyaml
           # Needed to import biosim entrypoints referenced by curated model manifests.
-          pip install "biosim @ git+https://github.com/BioSimulant/biosim.git@main"
+          pip install "biosimulant==0.0.26"
       - name: Validate manifest schema
         run: |
           for lab in labs/*; do
@@ -60,7 +60,7 @@ jobs:
       - name: Install validation dependencies
         run: |
           pip install pyyaml
-          pip install "biosim @ git+https://github.com/BioSimulant/biosim.git@main"
+          pip install "biosimulant==0.0.26"
       - name: Smoke run checks (sandbox-compatible image)
         run: |
           for lab in labs/*; do
