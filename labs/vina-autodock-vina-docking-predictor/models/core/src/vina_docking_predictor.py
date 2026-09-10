@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
-from biosim import BioModule
+from biosim import BioModule, ExecutionContext, ExecutionPolicy
 from biosim.signals import (AcceptedSignalProfile, ArraySignal, BioSignal, EventSignal, RecordSignal, ScalarSignal, SignalSpec)
 from biosim.signals import unwrap_payload as _signal_value
 from biosim.signals import make_signal as _make_signal
@@ -131,6 +131,8 @@ def _tail_text(value: str, *, max_chars: int = 12_000) -> str:
 class VinaDockingPredictor(BioModule):
     """Run classic AutoDock Vina for a single receptor and ligand PDBQT pair."""
 
+    execution_policy = ExecutionPolicy.ONCE_BEFORE_RUN
+
     def __init__(
         self,
         default_receptor_pdbqt_path: Optional[str] = None,
@@ -181,8 +183,7 @@ class VinaDockingPredictor(BioModule):
         )
         self._run_options: dict[str, Any] = _coerce_run_options(default_run_options)
         self._outputs: dict[str, BioSignal] = {}
-        self._cached_payloads: dict[str, Any] = {}
-        self._last_signature: Optional[str] = None
+        self._output_payloads: dict[str, Any] = {}
 
     def inputs(self) -> dict[str, SignalSpec]:
         return {
@@ -200,38 +201,32 @@ class VinaDockingPredictor(BioModule):
         }
 
     def reset(self) -> None:
+        super().reset()
         self._outputs = {}
-        self._cached_payloads = {}
-        self._last_signature = None
+        self._output_payloads = {}
 
     def set_inputs(self, signals: dict[str, BioSignal]) -> None:
-        changed = False
-
         receptor_signal = signals.get("receptor_pdbqt_path")
         if receptor_signal is not None:
             receptor_pdbqt_path = _coerce_string(_signal_value(receptor_signal), "path")
-            if receptor_pdbqt_path != self._receptor_pdbqt_path:
-                self._receptor_pdbqt_path = receptor_pdbqt_path
-                changed = True
+            self._receptor_pdbqt_path = receptor_pdbqt_path
 
         ligand_signal = signals.get("ligand_pdbqt_path")
         if ligand_signal is not None:
             ligand_pdbqt_path = _coerce_string(_signal_value(ligand_signal), "path")
-            if ligand_pdbqt_path != self._ligand_pdbqt_path:
-                self._ligand_pdbqt_path = ligand_pdbqt_path
-                changed = True
+            self._ligand_pdbqt_path = ligand_pdbqt_path
 
         run_signal = signals.get("run_options")
         if run_signal is not None:
             run_options = _coerce_run_options(_signal_value(run_signal))
-            if run_options != self._run_options:
-                self._run_options = run_options
-                changed = True
+            self._run_options = run_options
 
-        if changed:
-            self._last_signature = None
+    def execute(self, inputs: Mapping[str, BioSignal], *, context: ExecutionContext) -> Mapping[str, BioSignal]:
+        self.set_inputs(dict(inputs))
+        result = self._execute_at_time(0.0, 0.0)
+        return dict(result if result is not None else getattr(self, "_outputs", {}))
 
-    def advance_window(self, start: float, end: float) -> None:
+    def _execute_at_time(self, start: float, end: float) -> None:
         t = float(end)
         metadata: dict[str, Any] = {
             "status": "running",
@@ -260,19 +255,6 @@ class VinaDockingPredictor(BioModule):
             metadata["error"] = str(exc)
             self._emit_progress("error", metadata["error"])
             self._set_error_payload(str(exc), metadata=metadata)
-            self._emit_outputs(t)
-            return
-
-        signature = json.dumps(
-            {
-                "receptor_pdbqt_path": receptor_path,
-                "ligand_pdbqt_path": ligand_path,
-                "run_options": resolved_options,
-            },
-            sort_keys=True,
-        )
-        if signature == self._last_signature and self._cached_payloads:
-            self._emit_progress("cache", "Reusing cached AutoDock Vina outputs for unchanged inputs")
             self._emit_outputs(t)
             return
 
@@ -334,7 +316,6 @@ class VinaDockingPredictor(BioModule):
             metadata["error"] = f"failed to execute AutoDock Vina: {exc}"
             self._emit_progress("error", metadata["error"])
             self._set_error_payload(metadata["error"], metadata=metadata)
-            self._last_signature = signature
             self._emit_outputs(t)
             return
 
@@ -343,7 +324,6 @@ class VinaDockingPredictor(BioModule):
             metadata["error"] = "AutoDock Vina returned a non-zero exit code"
             self._emit_progress("error", metadata["error"])
             self._set_error_payload(metadata["error"], metadata=metadata)
-            self._last_signature = signature
             self._emit_outputs(t)
             return
 
@@ -393,24 +373,19 @@ class VinaDockingPredictor(BioModule):
             metadata["error"] = f"expected AutoDock Vina outputs were not found: {exc}"
             self._emit_progress("error", metadata["error"])
             self._set_error_payload(metadata["error"], metadata=metadata)
-            self._last_signature = signature
             self._emit_outputs(t)
             return
 
         metadata["status"] = "completed"
         metadata["seed"] = metadata.get("seed", resolved_options.get("seed"))
-        self._cached_payloads = {
+        self._output_payloads = {
             "pose_summary": pose_records,
             "docking_summary": docking_summary,
             "structure_artifacts": artifacts,
             "run_metadata": metadata,
         }
-        self._last_signature = signature
         self._emit_progress("completed", "AutoDock Vina outputs are ready")
         self._emit_outputs(t)
-
-    def get_outputs(self) -> dict[str, BioSignal]:
-        return dict(self._outputs)
 
     def visualize(self) -> Optional[list[dict[str, Any]]]:
         return None
@@ -1029,7 +1004,7 @@ class VinaDockingPredictor(BioModule):
         next_metadata = dict(metadata or {})
         next_metadata.setdefault("status", "error")
         next_metadata.setdefault("error", error_message)
-        self._cached_payloads = {
+        self._output_payloads = {
             "pose_summary": [],
             "docking_summary": {},
             "structure_artifacts": {},
@@ -1039,7 +1014,7 @@ class VinaDockingPredictor(BioModule):
     def _emit_outputs(self, t: float) -> None:
         self._outputs = {}
         for name in self.outputs():
-            self._outputs[name] = _make_signal(source="vina", name=name, value=self._cached_payloads.get(name, {}), emitted_at=t, spec=self.outputs().get(name))
+            self._outputs[name] = _make_signal(source="vina", name=name, value=self._output_payloads.get(name, {}), emitted_at=t, spec=self.outputs().get(name))
 
     def _structure_artifact_id(self, path: Path) -> str:
         digest = hashlib.sha256(str(path).encode("utf-8")).hexdigest()[:16]

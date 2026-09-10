@@ -10,6 +10,16 @@ This repository currently ships one native Python `biosim.BioModule` wrapper:
 `vina-autodock-vina-docking-predictor`, a single-complex AutoDock Vina docking
 module for prepared receptor and ligand `PDBQT` inputs.
 
+## Runtime compatibility
+
+The model and visualization wrappers use `BioModule.execute()` with
+`ExecutionPolicy.ONCE_BEFORE_RUN`. BioWorld therefore invokes each wrapper once
+per run and drains their dependency chain before temporal windows begin. The Lab
+manifest is intentionally unchanged for compatibility with current products;
+its short duration and settle fields no longer control how often these wrappers
+run. Biosimulant runtimes predating invocation-policy support require the prior
+wrapper release.
+
 ## What's Inside
 
 ### Wrapper Sublabs
@@ -40,4 +50,3 @@ The Vina model uses the existing generic remote execution path:
 - the wrapper streams live CLI stdout and stderr, emits `BSIM_PROGRESS:` milestones, and derives a merged `top_rank_complex.pdb` artifact for the existing `structure3d` renderer
 
 The release-grade validation target is Linux CPU execution on Modal.
-

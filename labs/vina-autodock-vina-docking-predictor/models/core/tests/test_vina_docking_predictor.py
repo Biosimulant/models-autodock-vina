@@ -8,6 +8,7 @@ import time
 
 import pytest
 from biosim.signals import (AcceptedSignalProfile, ArraySignal, BioSignal, EventSignal, RecordSignal, ScalarSignal, SignalSpec)
+from biosim.modules import ExecutionContext, ExecutionPolicy
 import yaml
 from biosim.signals import unwrap_payload as _signal_value
 from biosim.signals import make_signal as _make_signal
@@ -64,9 +65,8 @@ def test_missing_inputs_surface_error_metadata(biosim, tmp_path):
     from src.vina_docking_predictor import VinaDockingPredictor
 
     module = VinaDockingPredictor(work_dir=str(tmp_path))
-    module.advance_window(0.0, 0.1)
+    outputs = module.execute({}, context=ExecutionContext(policy=ExecutionPolicy.ONCE_BEFORE_RUN, run_start=0.0, run_end=0.1))
 
-    outputs = module.get_outputs()
     assert _signal_value(outputs["run_metadata"])["status"] == "error"
     assert "receptor_pdbqt_path" in _signal_value(outputs["run_metadata"])["error"]
     assert module.visualize() is None
@@ -96,9 +96,9 @@ def test_run_options_validation_requires_box_fields(biosim, tmp_path):
         ligand_pdbqt_path="data/1iep/1iep_ligand.pdbqt",
         run_options={"exhaustiveness": 8},
     )
-    module.advance_window(0.0, 0.1)
+    outputs = module.execute({}, context=ExecutionContext(policy=ExecutionPolicy.ONCE_BEFORE_RUN, run_start=0.0, run_end=0.1))
 
-    metadata = _signal_value(module.get_outputs()["run_metadata"])
+    metadata = _signal_value(outputs["run_metadata"])
     assert metadata["status"] == "error"
     assert "run_options.box_center" in metadata["error"]
 
@@ -119,9 +119,9 @@ def test_run_options_validation_rejects_unknown_keys(biosim, tmp_path):
             "not_supported": 1,
         },
     )
-    module.advance_window(0.0, 0.1)
+    outputs = module.execute({}, context=ExecutionContext(policy=ExecutionPolicy.ONCE_BEFORE_RUN, run_start=0.0, run_end=0.1))
 
-    metadata = _signal_value(module.get_outputs()["run_metadata"])
+    metadata = _signal_value(outputs["run_metadata"])
     assert metadata["status"] == "error"
     assert "unsupported run_options key" in metadata["error"]
 
@@ -220,9 +220,8 @@ def test_managed_runtime_bootstraps_and_parses_outputs(biosim, tmp_path, monkeyp
             "scoring": "vina",
         },
     )
-    module.advance_window(0.0, 0.5)
+    outputs = module.execute({}, context=ExecutionContext(policy=ExecutionPolicy.ONCE_BEFORE_RUN, run_start=0.0, run_end=0.5))
 
-    outputs = module.get_outputs()
     metadata = _signal_value(outputs["run_metadata"])
     pose_summary = _signal_value(outputs["pose_summary"])
     docking_summary = _signal_value(outputs["docking_summary"])
@@ -350,15 +349,15 @@ def test_subprocess_failure_surfaces_metadata(biosim, tmp_path, monkeypatch):
             "box_size": [20.0, 20.0, 20.0],
         },
     )
-    module.advance_window(0.0, 0.5)
+    outputs = module.execute({}, context=ExecutionContext(policy=ExecutionPolicy.ONCE_BEFORE_RUN, run_start=0.0, run_end=0.5))
 
-    metadata = _signal_value(module.get_outputs()["run_metadata"])
+    metadata = _signal_value(outputs["run_metadata"])
     assert metadata["status"] == "error"
     assert metadata["returncode"] == 3
     assert "non-zero" in metadata["error"]
 
 
-def test_repeat_advance_does_not_rerun_until_reset(biosim, tmp_path, monkeypatch):
+def test_bioworld_invokes_predictor_once_per_run(biosim, tmp_path, monkeypatch):
     from src.vina_docking_predictor import VinaDockingPredictor
     from biosim.signals import BioSignal
 
@@ -405,22 +404,12 @@ def test_repeat_advance_does_not_rerun_until_reset(biosim, tmp_path, monkeypatch
             "box_size": [20.0, 20.0, 20.0],
         },
     )
-    module.advance_window(0.0, 0.2)
-    module.advance_window(0.0, 0.3)
+    world = biosim.BioWorld(communication_step=0.1)
+    world.add_biomodule("predictor", module)
+    world.run(duration=0.3)
     assert calls["dock"] == 1
 
-    module.reset()
-    _set_required_inputs(
-        module,
-        BioSignal,
-        receptor_pdbqt_path="data/1iep/1iep_receptor.pdbqt",
-        ligand_pdbqt_path="data/1iep/1iep_ligand.pdbqt",
-        run_options={
-            "box_center": [15.19, 53.903, 16.917],
-            "box_size": [20.0, 20.0, 20.0],
-        },
-    )
-    module.advance_window(0.0, 0.4)
+    world.run(duration=0.1)
     assert calls["dock"] == 2
 
 
@@ -460,5 +449,4 @@ def _generic_input_spec(description=None):
         ),
         description=description,
     )
-
 
