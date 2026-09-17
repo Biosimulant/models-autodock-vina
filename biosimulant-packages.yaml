@@ -4,7 +4,7 @@ default_visibility: public
 packages:
   - id: vina-autodock-vina-docking-predictor-lab
     package: vina-autodock-vina-docking-predictor
-    version: 1.0.0
+    version: 1.0.1
     type: lab
     path: labs/vina-autodock-vina-docking-predictor
     visibility: public
