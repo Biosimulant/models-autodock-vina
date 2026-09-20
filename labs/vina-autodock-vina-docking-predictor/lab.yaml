@@ -77,3 +77,4 @@ wiring:
 - from: vina_autodock_vina_docking_predictor.run_metadata
   to:
   - visualisation.vina_autodock_vina_docking_predictor_run_metadata
+intended_use: Generate candidate binding poses for a prepared receptor/ligand pair. Docking scores do not establish experimental affinity, selectivity, clinical efficacy or calibrated probabilities.
