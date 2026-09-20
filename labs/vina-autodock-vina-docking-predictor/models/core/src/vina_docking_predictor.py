@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import platform
 import re
@@ -115,12 +116,15 @@ def _coerce_string(value: Any, *preferred_keys: str) -> Optional[str]:
 
 
 def _coerce_run_options(value: Any) -> dict[str, Any]:
-    if not isinstance(value, Mapping):
+    if value is None:
         return {}
+    if not isinstance(value, Mapping):
+        raise ValueError('run_options must be an object')
     out: dict[str, Any] = {}
     for key, item in value.items():
-        if isinstance(key, str):
-            out[key] = item
+        if not isinstance(key, str):
+            raise ValueError('run_options keys must be strings')
+        out[key] = item
     return out
 
 
@@ -181,7 +185,8 @@ class VinaDockingPredictor(BioModule):
         self._ligand_pdbqt_path: Optional[str] = _coerce_string(
             default_ligand_pdbqt_path, "path"
         )
-        self._run_options: dict[str, Any] = _coerce_run_options(default_run_options)
+        self._default_run_options = _coerce_run_options(default_run_options)
+        self._run_options: dict[str, Any] = dict(self._default_run_options)
         self._outputs: dict[str, BioSignal] = {}
         self._output_payloads: dict[str, Any] = {}
 
@@ -219,7 +224,7 @@ class VinaDockingPredictor(BioModule):
         run_signal = signals.get("run_options")
         if run_signal is not None:
             run_options = _coerce_run_options(_signal_value(run_signal))
-            self._run_options = run_options
+            self._run_options = {**self._default_run_options, **run_options}
 
     def execute(self, inputs: Mapping[str, BioSignal], *, context: ExecutionContext) -> Mapping[str, BioSignal]:
         self.set_inputs(dict(inputs))
@@ -250,6 +255,11 @@ class VinaDockingPredictor(BioModule):
                 input_name="ligand_pdbqt_path",
             )
             resolved_options = self._resolved_options()
+            metadata['input_sha256'] = {
+                'receptor_pdbqt': hashlib.sha256(Path(receptor_path).read_bytes()).hexdigest(),
+                'ligand_pdbqt': hashlib.sha256(Path(ligand_path).read_bytes()).hexdigest(),
+            }
+            metadata['resolved_options'] = dict(resolved_options)
         except Exception as exc:  # noqa: BLE001
             metadata["status"] = "error"
             metadata["error"] = str(exc)
@@ -280,6 +290,10 @@ class VinaDockingPredictor(BioModule):
             metadata["resolved_vina_executable"] = runtime.vina
             metadata["resolved_vina_split_executable"] = runtime.vina_split
             metadata["platform_tag"] = runtime.platform_tag
+            metadata['runtime_sha256'] = {
+                'vina': hashlib.sha256(Path(runtime.vina).read_bytes()).hexdigest(),
+                'vina_split': hashlib.sha256(Path(runtime.vina_split).read_bytes()).hexdigest(),
+            }
 
             self._emit_progress("config", "Writing AutoDock Vina config")
             self._write_config(config_path, resolved_options)
@@ -341,7 +355,7 @@ class VinaDockingPredictor(BioModule):
             docking_summary = self._build_docking_summary(
                 pose_records=pose_records,
                 options=resolved_options,
-                seed=metadata.get("seed"),
+                seed=metadata.get("seed", resolved_options.get("seed")),
             )
             docking_summary_file = output_dir / "docking_summary.json"
             self._write_json(pose_summary_file, {"poses": pose_records})
@@ -415,26 +429,26 @@ class VinaDockingPredictor(BioModule):
         for key in ("exhaustiveness", "n_poses"):
             if key in self._run_options:
                 value = self._run_options.get(key)
-                if not isinstance(value, int) or value <= 0:
+                if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                     raise ValueError(f"run_options.{key} must be a positive integer")
                 resolved[key] = value
 
         if "energy_range" in self._run_options:
             energy_range = self._run_options.get("energy_range")
-            if not isinstance(energy_range, (int, float)) or float(energy_range) <= 0:
+            if isinstance(energy_range, bool) or not isinstance(energy_range, (int, float)) or not math.isfinite(energy_range) or float(energy_range) <= 0:
                 raise ValueError("run_options.energy_range must be a positive number")
             resolved["energy_range"] = float(energy_range)
 
         if "cpu" in self._run_options:
             cpu = self._run_options.get("cpu")
-            if not isinstance(cpu, int) or cpu < 0:
+            if isinstance(cpu, bool) or not isinstance(cpu, int) or cpu < 0:
                 raise ValueError("run_options.cpu must be a non-negative integer")
             resolved["cpu"] = cpu
 
         if "seed" in self._run_options:
             seed = self._run_options.get("seed")
-            if not isinstance(seed, int):
-                raise ValueError("run_options.seed must be an integer")
+            if isinstance(seed, bool) or not isinstance(seed, int) or not -(2**31) <= seed < 2**31:
+                raise ValueError("run_options.seed must be a signed 32-bit integer")
             resolved["seed"] = seed
 
         if "scoring" in self._run_options:
@@ -450,8 +464,10 @@ class VinaDockingPredictor(BioModule):
             raise ValueError(f"run_options.{option_name} must be a list of three numbers")
         out: list[float] = []
         for item in value:
-            if not isinstance(item, (int, float)):
-                raise ValueError(f"run_options.{option_name} must contain only numbers")
+            if isinstance(item, bool) or not isinstance(item, (int, float)) or not math.isfinite(item):
+                raise ValueError(f"run_options.{option_name} must contain only finite numbers")
+            if option_name == 'box_size' and item <= 0:
+                raise ValueError('run_options.box_size values must be positive')
             out.append(float(item))
         return out
 
@@ -860,6 +876,12 @@ class VinaDockingPredictor(BioModule):
             "seed": seed,
             "box_center": list(options["box_center"]),
             "box_size": list(options["box_size"]),
+            "score_interpretation": "Lower docking scores rank poses within this run; they are not measured binding affinities or proof of binding.",
+            "rmsd_reference": "RMSD bounds in angstroms are relative to this run's best pose, not an experimental structure.",
+            "limitations": [
+                "Scores from different scoring functions are not interchangeable.",
+                "Rigid-receptor docking depends on structure preparation, search box and sampling; inspect the pose and validate against independent evidence.",
+            ],
         }
 
     def _build_structure_artifacts(

@@ -88,3 +88,8 @@ def test_visualisation_model_renders_docking_visuals(tmp_path):
     visuals = module.visualize()
     assert isinstance(visuals, list) and len(visuals) == 2
     assert [visual["render"] for visual in visuals] == ["structure3d", "table"]
+    if mode == 'vina':
+        assert 'kcal/mol' in visuals[1]['data']['columns'][1]
+        assert 'Å' in visuals[1]['data']['columns'][2]
+        assert 'not an experimental structure' in visuals[1]['description']
+        assert 'experimental binding evidence' in visuals[1]['data']['subtitle']

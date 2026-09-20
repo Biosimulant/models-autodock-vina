@@ -1,0 +1,33 @@
+{
+  "source_release": "demi/vina-autodock-vina-docking-predictor@1.0.0",
+  "archive_sha256": "dadcad4137266589299f92f8875204a642bc375b29a9855349846f112bad96c3",
+  "upstream_context": "https://autodock-vina.readthedocs.io/en/latest/docking_basic.html",
+  "prepared_input_files_unchanged": true,
+  "files": {
+    "models/core/data/1iep/1iep_ligand.pdbqt": {
+      "sha256": "15fb35648d8c18c70317842f3a0631b73a19429c710a037ab07310084d579bb8",
+      "size_bytes": 3841
+    },
+    "models/core/data/1iep/1iep_ligand.sdf": {
+      "sha256": "051b8742c32adc05c07fb486a4e7c9327f84e131cee33ac4e6a568d07553eb38",
+      "size_bytes": 6621
+    },
+    "models/core/data/1iep/1iep_receptor.box.pdb": {
+      "sha256": "e1673e0bf3a391d27f7a1e2491cf92d746aff5e293692d8b25cff7751ca8c304",
+      "size_bytes": 915
+    },
+    "models/core/data/1iep/1iep_receptor.box.txt": {
+      "sha256": "3dff08200b5b9c2ca0932c832c9dffc5823b39caec6c92f76be5f7c5ea49d8de",
+      "size_bytes": 101
+    },
+    "models/core/data/1iep/1iep_receptor.pdbqt": {
+      "sha256": "f13cf3b36f61d87c3b58983e0b8ecf1c3456a685eb86dfe9ccfb139c7bdc2586",
+      "size_bytes": 216160
+    },
+    "models/core/data/1iep/1iep_receptorH.pdb": {
+      "sha256": "5f6aee6029f9a2a2c2be32d4eb948ae70808690573e1b69a0850cdffd7048ca7",
+      "size_bytes": 357444
+    }
+  },
+  "scientific_scope": "Source-file provenance only; no experimental binding or crystal-pose agreement is asserted."
+}

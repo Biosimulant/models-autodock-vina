@@ -1,12 +1,19 @@
-description: Multi-model lab with an embedded visualisation sibling for AutoDock Vina 1.2.7. Ships with the bundled 1iep receptor/ligand PDBQT pair so the lab runs out of the box.
+description: Single-complex CPU docking with AutoDock Vina 1.2.7. Inspect ranked poses,
+  input checksums and search settings; docking scores are not experimental binding
+  evidence.
 io:
   inputs:
   - maps_to: vina_autodock_vina_docking_predictor.receptor_pdbqt_path
     name: receptor_pdbqt_path
+    description: Prepared PDBQT file path. The bundled 1iep example is used when omitted.
   - maps_to: vina_autodock_vina_docking_predictor.ligand_pdbqt_path
     name: ligand_pdbqt_path
+    description: Prepared PDBQT file path. The bundled 1iep example is used when omitted.
   - maps_to: vina_autodock_vina_docking_predictor.run_options
     name: run_options
+    description: Partial overrides of the bundled 1iep settings. Set a suitable box_center
+      and box_size for a different receptor. Options include seed, cpu, scoring, exhaustiveness,
+      n_poses and energy_range.
   outputs:
   - maps_to: vina_autodock_vina_docking_predictor.pose_summary
     name: pose_summary
@@ -30,11 +37,12 @@ models:
       - 20
       - 20
       - 20
-      cpu: 0
+      cpu: 2
       energy_range: 3
       exhaustiveness: 32
       n_poses: 9
       scoring: vina
+      seed: 2026
     runtime_mode: managed
   path: models/core
 - alias: visualisation
@@ -48,14 +56,13 @@ runtime:
   initial_inputs: {}
 schema_version: '2.0'
 package: vina-autodock-vina-docking-predictor
-version: 1.0.1
+version: 1.1.0
 tags:
 - docking
 - vina
 - autodock-vina
 - structural-biology
 - protein-ligand
-- gpu
 title: 'AutoDock Vina: VinaDockingPredictor Lab'
 wiring:
 - from: vina_autodock_vina_docking_predictor.pose_summary

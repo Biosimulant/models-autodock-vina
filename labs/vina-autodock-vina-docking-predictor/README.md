@@ -1,77 +1,33 @@
-# AutoDock Vina: VinaDockingPredictor Lab
+# AutoDock Vina: inspect a single-complex docking result
 
-This lab runs a single AutoDock Vina docking job for one prepared receptor and one prepared ligand. Both inputs are PDBQT files. The lab ships with the bundled `1iep` complex so a fresh run produces real ranked poses and a structural artifact without any extra setup.
+Dock one prepared ligand into one prepared rigid receptor using AutoDock Vina 1.2.7 on CPU. The Lab returns ranked PDBQT poses, a merged receptor–ligand PDB for the 3D viewer, resolved search settings, random seed and input-file SHA-256 checksums. It does not prepare raw structures or run virtual-screening batches.
 
-The wrapper boots the pinned official AutoDock Vina 1.2.7 release in managed runtime mode (the binaries are downloaded once and cached), runs classic CPU-backed Vina against the configured search box, and returns ranked poses, an aggregate docking summary, and merged structural files for the top-ranked pose.
+## Start with the bundled example
 
-This lab is for single-complex docking only. It does not prepare receptors from PDB, prepare ligands from SDF or SMILES, run AutoDock-GPU, or schedule virtual-screening batches. Those belong in adjacent labs.
+The packaged `1iep` inputs use a search-box center of `[15.19, 53.903, 16.917]` Å and size `[20, 20, 20]` Å. Defaults are exhaustiveness 32, up to 9 poses, energy range 3 kcal/mol, two CPU threads and seed 2026. The fixed seed is a reproducibility setting, not a tuned biological parameter. The default example is documented in the [official Vina tutorial](https://autodock-vina.readthedocs.io/en/latest/docking_basic.html).
 
-## What You'll See
+The existing screenshots in `assets/` show an earlier release; they are not evidence for version 1.1.0. Current results must come from an actual run.
 
-The lab opens as a small canvas with one Vina docking node and a run-results panel. With the bundled defaults, the run produces:
+## Supply a different complex
 
-- a ranked pose table sorted by binding affinity,
-- a structure3d view of the top-ranked pose merged onto the receptor,
-- a docking summary with run metadata, search box, and Vina stdout/stderr tails.
+- `receptor_pdbqt_path`: a prepared receptor PDBQT file accessible in the execution environment.
+- `ligand_pdbqt_path`: a prepared ligand PDBQT file accessible in the execution environment.
+- `run_options`: an object with partial overrides of the Lab defaults. Specify a suitable `box_center` and `box_size` for the new receptor; the bundled box is specific to the example.
 
-The first screenshot shows the canvas, node inputs and outputs, and the structure3d view for the top-ranked docked complex. The second scrolls down to the artifact details and ranked pose table for the same run.
+Supported options are `box_center`, `box_size`, `exhaustiveness`, `n_poses`, `energy_range`, `cpu`, `seed` and `scoring`. Scoring may be `vina` or `vinardo`; this wrapper does not implement AutoDock4 map input. Box sizes must be positive and finite, box centers finite, pose count and exhaustiveness positive integers, energy range positive and finite, CPU count a nonnegative integer and seed a signed 32-bit integer. A CPU count of zero delegates thread selection to Vina. Invalid settings stop the job with an explicit error.
 
-![AutoDock Vina lab canvas with top-ranked docked complex structure view](assets/vina-docking-top-ranked-complex.png)
+For example, `{"exhaustiveness": 16, "seed": 17}` preserves the preset box and other defaults. Each new options object merges with the original defaults, not a previous run's overrides. File paths provided as inputs replace their defaults; an explicitly blank path fails instead of silently using the example.
 
-![AutoDock Vina artifact details and ranked pose summary table](assets/vina-docking-pose-summary.png)
+## Interpret the output
 
-## How to Read the Visualizations
+Inspect the 3D pose and download the PDBQT files alongside the score table. Lower scores rank poses within the selected scoring function and run. They are not measured binding affinities or proof that a compound binds. RMSD lower/upper bounds compare poses with this run's best pose; they do not measure agreement with a crystal structure. The legacy JSON field `affinity_kcal_mol` is retained for compatibility and contains the docking score.
 
-The pose ranking table lists each Vina pose with its predicted binding affinity (kcal/mol), the lower-bound RMSD to the best pose, and the upper-bound RMSD. Lower (more negative) affinity is a stronger predicted bind. RMSDs near zero for the top entry are normal because Vina ranks against itself. In the screenshot, the bundled `1iep` run reports five poses and a top-ranked affinity of -13.314 kcal/mol.
+Accuracy depends on the target, structure preparation, search region and sampling. A plausible-looking pose alone does not establish biological activity. Validate the protocol using independent target-specific evidence before making selection decisions. The [official FAQ](https://autodock-vina.readthedocs.io/en/latest/faq.html) describes these limitations and the need to hold all inputs and settings fixed for seed-based reproducibility.
 
-The structure3d view shows the receptor with the highest-affinity pose merged in as `top_rank_complex.pdb`. Use it to sanity-check that the ligand sits inside the configured search box and inside a plausible pocket. If the ligand sits outside the receptor, the search box is wrong, not the docking. The shown default run places the ligand inside the receptor pocket and exposes the same structure artifact for download.
+## Outputs and provenance
 
-The docking summary captures the search box, exhaustiveness, scoring function, and the number of poses requested. The run metadata reports which Vina version executed, where the managed runtime cached its binaries, the truncated stdout/stderr from the CLI, and `status: ok` or `status: error` so a failed run is still inspectable.
+`pose_summary` contains pose ranks, scores, RMSD bounds and file paths. `docking_summary` contains the resolved settings and interpretation limits. `structure_artifacts` lists the original docking output, individual poses, merged PDB, configuration, summary files and logs. `run_metadata` records the actual input and executable checksums, seed, options, runtime location and `status: completed` or `status: error`.
 
-## What This Lab Contains
+The Python modules use Biosimulant 0.0.34 and Python 3.12. Both are finite, once-before-run modules; the duration and communication interval do not change the number of docking jobs. Managed mode downloads the official versioned Vina binaries. External mode requires preinstalled `vina` and `vina_split`. No GPU is required.
 
-- `lab.yaml` describes the lab, exposes its inputs and outputs, and pins the bundled defaults.
-- `wiring-layout.json` places the model on the canvas.
-- `model/model.yaml` describes the model package, parameters, and ports.
-- `model/src/vina_docking_predictor.py` contains the wrapper, managed runtime bootstrap, and visualization shaping.
-- `model/data/1iep/` ships the receptor PDBQT, ligand PDBQT, search-box reference files, and a prepared receptor PDB.
-- `model/tests/` checks the wrapper, manifest, and lab contract.
-
-## Inputs
-
-The model accepts three input signals. Each one falls back to the matching `default_*` parameter in `lab.yaml` when the signal is not wired, which is what makes the lab runnable out of the box.
-
-- `receptor_pdbqt_path` (path): prepared receptor PDBQT file. Defaults to `data/1iep/1iep_receptor.pdbqt`.
-- `ligand_pdbqt_path` (path): prepared ligand PDBQT file. Defaults to `data/1iep/1iep_ligand.pdbqt`.
-- `run_options` (record): Vina CLI options. Defaults to the 1iep-tuned box and exhaustiveness 32.
-  - `box_center` (Å, list of 3): search-box center, in receptor coordinates.
-  - `box_size` (Å, list of 3): search-box edge lengths.
-  - `exhaustiveness` (int): Vina sampling effort. Higher is slower and more thorough.
-  - `n_poses` (int): how many poses to return.
-  - `energy_range` (kcal/mol): max affinity gap from the top pose to keep a pose in the output.
-  - `cpu` (int): CPU thread budget. `0` lets Vina decide.
-  - `scoring` (str): Vina scoring function (`vina`, `vinardo`, `ad4`).
-
-## Outputs
-
-- `pose_summary` (record): ranked poses with affinity, RMSD lower/upper bounds, and per-pose file pointers.
-- `docking_summary` (record): aggregate stats across the pose set including the search box and Vina settings used.
-- `structure_artifacts` (record): file-backed artifacts including the merged `top_rank_complex.pdb` consumed by the structure3d renderer.
-- `run_metadata` (record): runtime metadata, Vina version, runtime/cache directories, truncated stdout/stderr, and `status: ok` or `status: error`.
-
-## Running in Biosimulant Desktop
-
-Import the lab once with the Biosim CLI, then open it from the desktop app. The bundled `1iep` defaults mean the first run requires no parameter editing.
-
-```bash
-biosimulant labs import labs/vina-autodock-vina-docking-predictor
-```
-
-To dock a different complex, override the inputs in the lab's run sidebar (or wire them to a source module that produces PDBQT paths). The model treats wired input signals as overrides on top of the defaults, so partial overrides work too.
-
-## Notes
-
-- Managed runtime mode is required for remote CPU execution on Modal. System mode (using a pre-installed Vina) is supported for local debugging.
-- Vina and its downstream visualization use `BioModule.execute()` with `ExecutionPolicy.ONCE_BEFORE_RUN`, so each runs exactly once per BioWorld run and the dependency chain drains without settle turns.
-- The short `runtime.duration` and `runtime.settle_steps: 1` fields remain in the manifest for product compatibility; they do not determine the wrappers' invocation count.
-- `model/data/1iep/` is shipped as part of the model package so the defaults resolve in remote runs too.
+The code, documentation and source-file notices supplied with the repository remain applicable. `source-provenance.json` pins the bundled input bytes without claiming independent experimental validation. See `MTS.md` for the execution and validation contract.
