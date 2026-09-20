@@ -1,0 +1,38 @@
+{
+  "status": "completed",
+  "seed": 2026,
+  "pose_count": 6,
+  "top_docking_score_kcal_mol": -13.233,
+  "native_annotation_parity": true,
+  "input_sha256": {
+    "ligand_pdbqt": "15fb35648d8c18c70317842f3a0631b73a19429c710a037ab07310084d579bb8",
+    "receptor_pdbqt": "f13cf3b36f61d87c3b58983e0b8ecf1c3456a685eb86dfe9ccfb139c7bdc2586"
+  },
+  "options": {
+    "box_center": [
+      15.19,
+      53.903,
+      16.917
+    ],
+    "box_size": [
+      20.0,
+      20.0,
+      20.0
+    ],
+    "cpu": 2,
+    "energy_range": 3.0,
+    "exhaustiveness": 32,
+    "n_poses": 9,
+    "scoring": "vina",
+    "seed": 2026
+  },
+  "docking_output_sha256": "20a6e7dbbbbb77d1a8ec7f24fe5fb73c53c1553b0842c26809c3ab8d4444439c",
+  "merged_atom_count": 2742,
+  "scope": "Real local execution and artifact integrity; not biological validation or a managed-run Passport.",
+  "runtime_sha256": {
+    "vina": "823c2bbacf26d72183861322345f0a89736aca66c8e81054c66f93af5ad623f1",
+    "vina_split": "7c4a5a567b78a0e3a3de00563b36c71136347cfd527cb91f28ea22d24614ce68"
+  },
+  "three_runs_identical_pose_bytes": true,
+  "unit_tests_passed": 38
+}

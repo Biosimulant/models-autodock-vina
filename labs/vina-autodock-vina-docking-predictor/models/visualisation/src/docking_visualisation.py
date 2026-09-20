@@ -115,7 +115,7 @@ class DockingVisualisationModel(BioModule):
                     "source": {"kind": "artifact", "artifact_id": self._artifact_id(top_complex_path), "path": str(top_complex_path)},
                     "format": "pdb",
                     "annotations": [
-                        {"label": "Top Pose Affinity (kcal/mol)", "value": docking_summary.get("top_pose_affinity_kcal_mol")},
+                        {"label": "Top Pose Docking Score (kcal/mol)", "value": docking_summary.get("top_pose_affinity_kcal_mol")},
                         {"label": "Scoring", "value": docking_summary.get("scoring")},
                         {"label": "Pose Count", "value": docking_summary.get("pose_count")},
                     ],
@@ -124,10 +124,11 @@ class DockingVisualisationModel(BioModule):
             },
             {
                 "render": "table",
-                "description": "Ranked pose summary from the latest AutoDock Vina run.",
+                "description": "Docking scores rank poses within this run; they are not measured affinities or proof of binding. RMSD bounds compare each pose with this run's best pose, not an experimental structure.",
                 "data": {
                     "title": "AutoDock Vina Pose Summary",
-                    "columns": ["Rank", "Affinity", "RMSD l.b.", "RMSD u.b.", "Pose File"],
+                    "subtitle": "Lower scores rank better within this run. Inspect the pose; do not treat the score as experimental binding evidence.",
+                    "columns": ["Rank", "Docking score (kcal/mol)", "RMSD l.b. (Å)", "RMSD u.b. (Å)", "Pose File"],
                     "rows": rows,
                 },
             },

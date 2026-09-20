@@ -1,76 +1,105 @@
-schema_version: "2.0"
-title: "AutoDock Vina: VinaDockingPredictor"
-description: "Wraps the official AutoDock Vina 1.2.7 CLI for single receptor and ligand PDBQT docking runs."
-package: "Biosimulant/models-autodock-vina:labs/vina-autodock-vina-docking-predictor/models/core/model.yaml"
-version: "0.1.1"
+schema_version: '2.0'
+title: 'AutoDock Vina: VinaDockingPredictor'
+description: Wraps the official AutoDock Vina 1.2.7 CLI for single receptor and ligand
+  PDBQT docking runs.
+package: vina-docking-core
+version: 1.1.0
 standard: other
-tags: [vina, autodock-vina, docking, structural-biology, protein-ligand, gpu]
-authors: ["Biosimulant Team"]
+tags:
+- vina
+- autodock-vina
+- docking
+- structural-biology
+- protein-ligand
+authors:
+- Biosimulant Team
 biosim:
   communication_step: 0.01
-  execution_policy: "once_before_run"
-  entrypoint: "src.vina_docking_predictor:VinaDockingPredictor"
+  entrypoint: src.vina_docking_predictor:VinaDockingPredictor
+  execution_policy: once_before_run
 runtime:
-  python_version: "3.11"
+  python_version: '3.12'
   remote:
     requirements:
-      accelerator: gpu
-      gpu_count: 1
+      accelerator: cpu
+      gpu_count: 0
     init_kwargs:
       runtime_mode: managed
-      runtime_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina"
-      cache_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina/downloads"
-      work_dir: "${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-work/vina"
+      runtime_dir: ${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina
+      cache_dir: ${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-cache/vina/downloads
+      work_dir: ${REMOTE_EXECUTION_MOUNT_ROOT}/runtime-work/vina
+  dependencies:
+    packages:
+    - biosimulant==0.0.34
 parameters:
-  - name: default_receptor_pdbqt_path
-    value: null
-    description: "Fallback receptor PDBQT path used when the receptor_pdbqt_path input signal is not wired. Resolved relative to the model directory."
-  - name: default_ligand_pdbqt_path
-    value: null
-    description: "Fallback ligand PDBQT path used when the ligand_pdbqt_path input signal is not wired. Resolved relative to the model directory."
-  - name: default_run_options
-    value: {}
-    description: "Default Vina CLI options merged onto any run_options input signal. Keys: box_center, box_size, exhaustiveness, n_poses, energy_range, cpu, scoring."
-  - name: runtime_mode
-    value: "managed"
-    description: "managed | system. Managed downloads the pinned official Vina 1.2.7 binaries on first run."
-  - name: vina_version
-    value: "1.2.7"
-    description: "Pinned upstream AutoDock Vina release fetched in managed runtime mode."
-  - name: command_timeout_s
-    value: 3600.0
-    min: 1.0
-    units: "s"
-    description: "Timeout for any single Vina CLI invocation."
-  - name: download_timeout_s
-    value: 1200.0
-    min: 1.0
-    units: "s"
-    description: "Timeout for the managed-runtime binary download."
-  - name: progress_heartbeat_s
-    value: 15.0
-    min: 0.0
-    units: "s"
-    description: "Interval between BSIM_PROGRESS heartbeat events while Vina is running."
-  - name: integration_step
-    value: 0.01
-    min: 0.001
-    units: "s"
-    description: "BioWorld integration step. Vina is event-driven so this only paces the wrapper."
+- name: default_receptor_pdbqt_path
+  value: null
+  description: Fallback receptor PDBQT path used when the receptor_pdbqt_path input
+    signal is not wired. Resolved relative to the model directory.
+- name: default_ligand_pdbqt_path
+  value: null
+  description: Fallback ligand PDBQT path used when the ligand_pdbqt_path input signal
+    is not wired. Resolved relative to the model directory.
+- name: default_run_options
+  value: {}
+  description: 'Default options merged with the run_options input: box_center, box_size,
+    exhaustiveness, n_poses, energy_range, cpu, seed, scoring (vina or vinardo).'
+- name: runtime_mode
+  value: managed
+  description: managed | external. Managed downloads the official versioned Vina binaries;
+    external requires local executables.
+- name: vina_version
+  value: 1.2.7
+  description: Pinned upstream AutoDock Vina release fetched in managed runtime mode.
+- name: command_timeout_s
+  value: 3600.0
+  min: 1.0
+  units: s
+  description: Timeout for any single Vina CLI invocation.
+- name: download_timeout_s
+  value: 1200.0
+  min: 1.0
+  units: s
+  description: Timeout for the managed-runtime binary download.
+- name: progress_heartbeat_s
+  value: 15.0
+  min: 0.0
+  units: s
+  description: Interval between BSIM_PROGRESS heartbeat events while Vina is running.
+- name: integration_step
+  value: 0.01
+  min: 0.001
+  units: s
+  description: Legacy compatibility setting; this finite module executes once per
+    run.
 io:
   inputs:
-    - name: receptor_pdbqt_path
-      description: "Receptor PDBQT file path. Overrides default_receptor_pdbqt_path when present."
-    - name: ligand_pdbqt_path
-      description: "Ligand PDBQT file path. Overrides default_ligand_pdbqt_path when present."
-    - name: run_options
-      description: "Vina options dict merged onto default_run_options. Keys: box_center, box_size, exhaustiveness, n_poses, energy_range, cpu, scoring."
+  - name: receptor_pdbqt_path
+    signal_type: record
+    schema:
+      payload: json
+  - name: ligand_pdbqt_path
+    signal_type: record
+    schema:
+      payload: json
+  - name: run_options
+    signal_type: record
+    schema:
+      payload: json
   outputs:
-    - name: pose_summary
-      description: "Ranked Vina poses with affinities and RMSDs."
-    - name: docking_summary
-      description: "Aggregate stats across the ranked pose set."
-    - name: structure_artifacts
-      description: "File-backed structural artifacts (top-rank merged PDB and per-pose splits)."
-    - name: run_metadata
-      description: "Runtime metadata including stdout/stderr tails. payload.status='ok' on success, 'error' if validation or the Vina CLI failed."
+  - name: pose_summary
+    signal_type: record
+    schema:
+      payload: json
+  - name: docking_summary
+    signal_type: record
+    schema:
+      payload: json
+  - name: structure_artifacts
+    signal_type: record
+    schema:
+      payload: json
+  - name: run_metadata
+    signal_type: record
+    schema:
+      payload: json

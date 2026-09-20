@@ -1,26 +1,54 @@
-schema_version: "2.0"
-title: "AutoDock Vina Visualisation"
-description: "Dedicated presentation model for this docking lab."
+schema_version: '2.0'
+title: AutoDock Vina Visualisation
+description: Dedicated presentation model for this docking lab.
 standard: other
 tags:
-  - docking
-  - visualisation
+- docking
+- visualisation
 authors:
-  - "Biosimulant Team"
+- Biosimulant Team
 biosim:
-  entrypoint: "src.docking_visualisation:DockingVisualisationModel"
+  entrypoint: src.docking_visualisation:DockingVisualisationModel
   init_kwargs:
     integration_step: 0.01
-    source_alias: "vina_autodock_vina_docking_predictor"
-    mode: "vina"
-    lab_title: "AutoDock Vina Visualisation"
+    source_alias: vina_autodock_vina_docking_predictor
+    mode: vina
+    lab_title: AutoDock Vina Visualisation
   communication_step: 0.01
-  execution_policy: "once_before_run"
+  execution_policy: once_before_run
 parameters:
-  - name: integration_step
-    value: 0.01
-    min: 0.0
-    description: "Sampling step for the visualisation model."
+- name: integration_step
+  value: 0.01
+  min: 0.0
+  description: Legacy compatibility setting; this finite module executes once per
+    run.
 io:
-  inputs: []
+  inputs:
+  - name: vina_autodock_vina_docking_predictor_pose_summary
+    signal_type: record
+    schema:
+      payload: json
+    description: Internal pose_summary input from the sibling core model.
+  - name: vina_autodock_vina_docking_predictor_docking_summary
+    signal_type: record
+    schema:
+      payload: json
+    description: Internal docking_summary input from the sibling core model.
+  - name: vina_autodock_vina_docking_predictor_structure_artifacts
+    signal_type: record
+    schema:
+      payload: json
+    description: Internal structure_artifacts input from the sibling core model.
+  - name: vina_autodock_vina_docking_predictor_run_metadata
+    signal_type: record
+    schema:
+      payload: json
+    description: Internal run_metadata input from the sibling core model.
   outputs: []
+package: vina-docking-visualisation
+version: 1.1.0
+runtime:
+  python_version: '3.12'
+  dependencies:
+    packages:
+    - biosimulant==0.0.34
